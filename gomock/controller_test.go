@@ -210,6 +210,108 @@ func TestAnyTimes(t *testing.T) {
 	ctrl.Finish()
 }
 
+func TestAtLeastTimes(t *testing.T) {
+	// It fails if there are no calls
+	reporter, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").AtLeastTimes(1)
+	reporter.assertFatal(func() {
+		ctrl.Finish()
+	})
+
+	// It succeeds if there is one call
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").AtLeastTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Finish()
+
+	// It succeeds if there are many calls
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").AtLeastTimes(1)
+	for i := 0; i < 100; i++ {
+		ctrl.Call(subject, "FooMethod", "argument")
+	}
+	ctrl.Finish()
+}
+
+func TestAtMostTimes(t *testing.T) {
+	// It succeeds if there are no calls
+	_, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").AtMostTimes(1)
+	ctrl.Finish()
+
+	// It succeeds if there is one call
+	_, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").AtMostTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Finish()
+
+	//It fails if there are more
+	reporter, ctrl := createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").AtMostTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	reporter.assertFatal(func() {
+		ctrl.Call(subject, "FooMethod", "argument")
+	})
+	ctrl.Finish()
+}
+
+func TestMinMaxTimesMin(t *testing.T) {
+	// It fails if there are no calls
+	reporter, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(1).MaxTimes(1e8)
+	reporter.assertFatal(func() {
+		ctrl.Finish()
+	})
+
+	// It succeeds if there is one call
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(1).MaxTimes(1e8)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Finish()
+
+	// It succeeds if there are many calls
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(1).MaxTimes(1e8)
+	for i := 0; i < 100; i++ {
+		ctrl.Call(subject, "FooMethod", "argument")
+	}
+	ctrl.Finish()
+}
+
+func TestMinMaxTimesMax(t *testing.T) {
+	// It succeeds if there are no calls
+	_, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(0).MaxTimes(1)
+	ctrl.Finish()
+
+	// It succeeds if there is one call
+	_, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(0).MaxTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Finish()
+
+	//It fails if there are more
+	reporter, ctrl := createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(0).MaxTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	reporter.assertFatal(func() {
+		ctrl.Call(subject, "FooMethod", "argument")
+	})
+	ctrl.Finish()
+}
+
 func TestDo(t *testing.T) {
 	_, ctrl := createFixtures(t)
 	subject := new(Subject)
