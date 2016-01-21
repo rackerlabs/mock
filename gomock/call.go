@@ -41,8 +41,37 @@ type Call struct {
 	setArgs map[int]reflect.Value
 }
 
+// AnyTimes allows the expectation to be called 0 or more times
 func (c *Call) AnyTimes() *Call {
 	c.minCalls, c.maxCalls = 0, 1e8 // close enough to infinity
+	return c
+}
+
+// MinTimes sets the minimum number of times an expectation must be called. It is expected to be used along
+// with MaxTimes
+func (c *Call) MinTimes(n int) *Call {
+	c.minCalls = n
+	return c
+}
+
+// MaxTimes sets the maximum number of times an expectation may be called. It is expected to be used along
+// with MinTimes
+func (c *Call) MaxTimes(n int) *Call {
+	c.maxCalls = n
+	return c
+}
+
+// AtLeastTimes sets the minimum number of times an expectation must be called, and sets the upper boundary to infinity.
+// AtLeastTimes is a convenience method, equivalent to mock.EXPECT().Call().MinTimes(n).MaxTimes(1e8)
+func (c *Call) AtLeastTimes(n int) *Call {
+	c.minCalls, c.maxCalls = n, 1e8
+	return c
+}
+
+// AtMostTimes sets the maximum number of times an expectation may be called, and sets the minimum number to 0.
+// AtMostTimes is a convenience method, equivalent to mock.EXPECT().Call().MinTimes(0).MaxTimes(n)
+func (c *Call) AtMostTimes(n int) *Call {
+	c.minCalls, c.maxCalls = 0, n
 	return c
 }
 
